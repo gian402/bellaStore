@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { ShoppingBag, Heart, Minus, Plus, Star, ArrowLeft, Share2, CheckCircle, Loader2 } from 'lucide-react';
+import { ShoppingBag, Heart, Minus, Plus, Share2, CheckCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
 import ProductGallery from '@/components/products/ProductGallery';
-import ProductCard from '@/components/products/ProductCard';
 import { useCartStore } from '@/store/cartStore';
 import { useFavoritesStore } from '@/store/favoritesStore';
 import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
@@ -218,6 +217,27 @@ export default function ProductDetailPage() {
               <p className="text-gray-600 leading-relaxed mb-6 text-sm">
                 {product.descripcion}
               </p>
+
+              {/* Color */}
+              {product.color && (() => {
+                const parts = product.color.split('|');
+                const colorNombre = parts[0];
+                const colorHex = parts[1] ?? null;
+                return (
+                  <div className="flex items-center gap-3 mb-5">
+                    <span className="text-sm font-medium text-gray-700">Color:</span>
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100">
+                      {colorHex && (
+                        <span
+                          className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0 shadow-sm"
+                          style={{ backgroundColor: colorHex }}
+                        />
+                      )}
+                      <span className="text-sm font-medium text-gray-700">{colorNombre}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Stock */}
               <div className="flex items-center gap-2 mb-6">

@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
       imagenes: Array.isArray(body.imagenes) ? body.imagenes : [],
       imagen_principal: body.imagen_principal ?? '',
       slug: body.slug ?? body.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      color: body.color ? String(body.color) : null,
       vistas: 0,
       ventas: 0,
     };

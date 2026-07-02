@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Search, Edit, Trash2, Eye, Package, ToggleLeft, ToggleRight, Loader2, CheckSquare, Square } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Package, Loader2, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/lib/supabase/client';
 import { formatPrice, cn } from '@/lib/utils';

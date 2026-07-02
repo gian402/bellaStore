@@ -13,6 +13,7 @@ import { generateSlug, cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import type { Category, Product, ProductFormData } from '@/types';
 import toast from 'react-hot-toast';
+import ColorPicker from '@/components/admin/ColorPicker';
 
 const productSchema = z.object({
   nombre: z.string().min(2, 'Nombre requerido (mín. 2 caracteres)'),
@@ -21,6 +22,7 @@ const productSchema = z.object({
   precio_oferta: z.number().positive().optional().nullable(),
   categoria_id: z.string().min(1, 'Selecciona una categoría'),
   stock: z.number({ error: 'Stock requerido' }).int().min(0),
+  color: z.string().optional().nullable(),
   destacado: z.boolean(),
   es_nuevo: z.boolean(),
   en_oferta: z.boolean(),
@@ -57,6 +59,7 @@ export default function ProductForm({
   const [images, setImages] = useState<string[]>(existingImages);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [colorHex, setColorHex] = useState<string>('#000000');
 
   const {
     register,
@@ -64,7 +67,6 @@ export default function ProductForm({
     watch,
     control,
     reset,
-    setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -75,6 +77,7 @@ export default function ProductForm({
       precio_oferta: null,
       categoria_id: '',
       stock: 0,
+      color: '',
       destacado: false,
       es_nuevo: true,
       en_oferta: false,
@@ -117,6 +120,10 @@ export default function ProductForm({
           .single();
         if (error || !data) throw error ?? new Error('Producto no encontrado');
         const p = data as Product;
+        // El color se guarda como "Nombre|#HEX", parseamos el hex si existe
+        const colorParts = p.color ? p.color.split('|') : [];
+        const savedHex = colorParts[1] ?? '#000000';
+        if (colorParts[1]) setColorHex(savedHex);
         reset({
           nombre: p.nombre,
           descripcion: p.descripcion,
@@ -124,6 +131,7 @@ export default function ProductForm({
           precio_oferta: p.precio_oferta ?? null,
           categoria_id: p.categoria_id,
           stock: p.stock,
+          color: colorParts[0] ?? '',
           destacado: p.destacado,
           es_nuevo: p.es_nuevo,
           en_oferta: p.en_oferta,
@@ -221,8 +229,13 @@ export default function ProductForm({
       }
 
       // 2. Construir payload del producto
+      const colorNombre = (data.color ?? '').trim();
       const productData = {
         ...data,
+        // Guarda "Nombre|#HEX" si hay color, null si no
+        color: colorNombre
+          ? `${colorNombre}|${colorHex}`
+          : null,
         slug: generateSlug(data.nombre),
         imagen_principal: allImageUrls[0] ?? '',
         imagenes: allImageUrls.map((url, i) => ({
@@ -339,6 +352,30 @@ export default function ProductForm({
                     )}
                   />
                   {errors.descripcion && <p className="text-xs text-red-500 mt-1">{errors.descripcion.message as string}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Color <span className="text-gray-400 font-normal">(opcional)</span>
+                  </label>
+                  <Controller
+                    name="color"
+                    control={control}
+                    render={({ field }) => (
+                      <ColorPicker
+                        hex={colorHex}
+                        nombre={field.value ?? ''}
+                        onChange={(newHex, newNombre) => {
+                          setColorHex(newHex);
+                          field.onChange(newNombre);
+                        }}
+                        onClear={() => {
+                          setColorHex('#000000');
+                          field.onChange('');
+                        }}
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>

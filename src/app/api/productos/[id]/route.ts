@@ -81,6 +81,7 @@ export async function PUT(
     if (body.mas_vendido !== undefined) updateData.mas_vendido = Boolean(body.mas_vendido);
     if (body.imagenes !== undefined) updateData.imagenes = Array.isArray(body.imagenes) ? body.imagenes : [];
     if (body.imagen_principal !== undefined) updateData.imagen_principal = body.imagen_principal;
+    if (body.color !== undefined) updateData.color = body.color ? String(body.color) : null;
 
     const { data, error } = await supabase
       .from('productos')

@@ -32,6 +32,7 @@ export interface Product {
   mas_vendido: boolean;
   etiquetas: ProductTag[];
   slug: string;
+  color?: string | null;
   vistas: number;
   ventas: number;
   created_at: string;
@@ -50,6 +51,7 @@ export interface ProductFormData {
   en_oferta: boolean;
   mas_vendido: boolean;
   etiquetas: ProductTag[];
+  color?: string | null;
 }
 
 // --- CATEGORÍA ---
