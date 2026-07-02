@@ -158,24 +158,26 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="flex flex-col"
             >
-              {/* Etiquetas */}
-              <div className="flex gap-2 mb-4">
-                {product.es_nuevo && (
-                  <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    ✨ Nuevo
-                  </span>
-                )}
-                {product.en_oferta && discount > 0 && (
-                  <span className="bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    -{discount}% Oferta
-                  </span>
-                )}
-                {product.mas_vendido && (
-                  <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
-                    ⭐ Popular
-                  </span>
-                )}
-              </div>
+              {/* Etiquetas — solo en disponibles */}
+              {!(product.estado === 'agotado' || product.agotado) && (
+                <div className="flex gap-2 mb-4">
+                  {product.es_nuevo && (
+                    <span className="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">
+                      ✨ Nuevo
+                    </span>
+                  )}
+                  {product.en_oferta && discount > 0 && (
+                    <span className="bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-1 rounded-full">
+                      -{discount}% Oferta
+                    </span>
+                  )}
+                  {product.mas_vendido && (
+                    <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
+                      ⭐ Popular
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Categoría */}
               {product.categoria && (
@@ -192,203 +194,222 @@ export default function ProductDetailPage() {
                 {product.nombre}
               </h1>
 
-              {/* Precio */}
-              <div className="flex items-center gap-3 mb-6">
-                {product.precio_oferta ? (
-                  <>
-                    <span className="text-3xl font-bold text-rose-500">
-                      {formatPrice(product.precio_oferta)}
-                    </span>
-                    <span className="text-xl text-gray-400 line-through">
-                      {formatPrice(product.precio)}
-                    </span>
-                    <span className="bg-rose-100 text-rose-600 text-sm font-semibold px-2.5 py-1 rounded-full">
-                      Ahorra {formatPrice(product.precio - product.precio_oferta)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-3xl font-bold text-gray-900">
-                    {formatPrice(product.precio)}
-                  </span>
-                )}
-              </div>
-
-              {/* Descripción */}
-              <p className="text-gray-600 leading-relaxed mb-6 text-sm">
-                {product.descripcion}
-              </p>
-
-              {/* Color */}
-              {product.color && (() => {
-                const parts = product.color.split('|');
-                const colorNombre = parts[0];
-                const colorHex = parts[1] ?? null;
-                return (
-                  <div className="flex items-center gap-3 mb-5">
-                    <span className="text-sm font-medium text-gray-700">Color:</span>
-                    <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100">
-                      {colorHex && (
-                        <span
-                          className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0 shadow-sm"
-                          style={{ backgroundColor: colorHex }}
-                        />
-                      )}
-                      <span className="text-sm font-medium text-gray-700">{colorNombre}</span>
-                    </div>
+              {/* --- MODO AGOTADO: solo muestra info de pedido anticipado --- */}
+              {(product.estado === 'agotado' || product.agotado) ? (
+                <>
+                  {/* Badge agotado */}
+                  <div className="flex items-center gap-2 mb-5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                    <span className="text-sm text-red-500 font-semibold">Agotado temporalmente</span>
                   </div>
-                );
-              })()}
 
-              {/* Stock */}
-              <div className="flex items-center gap-2 mb-6">
-                {(product.estado === 'disponible' && !product.agotado) ? (
-                  <>
+                  {/* Info pedido anticipado */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6 space-y-3">
+                    <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                      📦 Disponible por pedido anticipado
+                    </p>
+                    {product.costo_pedido != null && (
+                      <div className="flex items-center justify-between text-sm border-t border-amber-100 pt-3">
+                        <span className="text-gray-600">Costo del pedido</span>
+                        <span className="font-bold text-gray-900 text-base">{formatPrice(product.costo_pedido)}</span>
+                      </div>
+                    )}
+                    {product.tiempo_llegada && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Tiempo de llegada</span>
+                        <span className="font-semibold text-gray-800">{product.tiempo_llegada}</span>
+                      </div>
+                    )}
+                    <p className="text-xs text-amber-700 bg-amber-100 rounded-xl px-3 py-2 mt-1">
+                      Al solicitar tu pedido te contactaremos para coordinar el pago y la entrega.
+                    </p>
+                  </div>
+
+                  {/* Botón Solicitar */}
+                  <div className="flex gap-3 mb-6">
+                    <motion.button
+                      onClick={() => {
+                        addItem(product, 1);
+                        toast.success('Solicitud agregada — completa tu pedido', {
+                          icon: '📦',
+                          style: { borderRadius: '12px' },
+                        });
+                        setTimeout(() => openCart(), 400);
+                      }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:shadow-lg hover:shadow-emerald-200 transition-all duration-200"
+                    >
+                      <ShoppingBag className="w-5 h-5" />
+                      Solicitar pedido
+                    </motion.button>
+
+                    <button
+                      onClick={() => toggleFavorite(product.id)}
+                      className={cn(
+                        'w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-200',
+                        favorite
+                          ? 'bg-rose-500 border-rose-500 text-white'
+                          : 'border-gray-200 text-gray-500 hover:border-rose-300 hover:text-rose-400'
+                      )}
+                    >
+                      <Heart className={cn('w-5 h-5', favorite && 'fill-white')} />
+                    </button>
+
+                    <button
+                      onClick={handleShare}
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-gray-200 text-gray-500 hover:border-gray-300 transition-colors"
+                    >
+                      <Share2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* --- MODO DISPONIBLE: muestra todo --- */}
+
+                  {/* Precio */}
+                  <div className="flex items-center gap-3 mb-6">
+                    {product.precio_oferta ? (
+                      <>
+                        <span className="text-3xl font-bold text-rose-500">
+                          {formatPrice(product.precio_oferta)}
+                        </span>
+                        <span className="text-xl text-gray-400 line-through">
+                          {formatPrice(product.precio)}
+                        </span>
+                        <span className="bg-rose-100 text-rose-600 text-sm font-semibold px-2.5 py-1 rounded-full">
+                          Ahorra {formatPrice(product.precio - product.precio_oferta)}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-3xl font-bold text-gray-900">
+                        {formatPrice(product.precio)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Descripción */}
+                  <p className="text-gray-600 leading-relaxed mb-6 text-sm">
+                    {product.descripcion}
+                  </p>
+
+                  {/* Color */}
+                  {product.color && (() => {
+                    const parts = product.color.split('|');
+                    const colorNombre = parts[0];
+                    const colorHex = parts[1] ?? null;
+                    return (
+                      <div className="flex items-center gap-3 mb-5">
+                        <span className="text-sm font-medium text-gray-700">Color:</span>
+                        <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100">
+                          {colorHex && (
+                            <span
+                              className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0 shadow-sm"
+                              style={{ backgroundColor: colorHex }}
+                            />
+                          )}
+                          <span className="text-sm font-medium text-gray-700">{colorNombre}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Stock disponible */}
+                  <div className="flex items-center gap-2 mb-6">
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
                     <span className="text-sm text-emerald-600 font-medium">Disponible</span>
                     {product.stock <= 10 && (
                       <span className="text-xs text-amber-500">· Solo {product.stock} restantes</span>
                     )}
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-red-400" />
-                    <span className="text-sm text-red-500 font-semibold">Agotado</span>
-                  </>
-                )}
-              </div>
-
-              {/* Info de pedido anticipado (solo cuando está agotado) */}
-              {(product.estado === 'agotado' || product.agotado) && (
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 space-y-2">
-                  <p className="text-sm font-bold text-red-700 flex items-center gap-1.5">
-                    <span>📦</span> Pedido anticipado disponible
-                  </p>
-                  {product.costo_pedido != null && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Costo de pedido:</span>
-                      <span className="font-bold text-gray-800">{formatPrice(product.costo_pedido)}</span>
-                    </div>
-                  )}
-                  {product.tiempo_llegada && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Tiempo de llegada:</span>
-                      <span className="font-semibold text-gray-700">{product.tiempo_llegada}</span>
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-400 pt-1">
-                    Solicita tu pedido y nos pondremos en contacto contigo.
-                  </p>
-                </div>
-              )}
-
-              {/* Selector de cantidad */}
-              {(product.estado === 'disponible' && !product.agotado) && (
-                <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Cantidad:</p>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-3 hover:bg-gray-50 transition-colors"
-                        disabled={quantity <= 1}
-                      >
-                        <Minus className="w-4 h-4 text-gray-500" />
-                      </button>
-                      <span className="w-12 text-center font-semibold text-gray-800">
-                        {quantity}
-                      </span>
-                      <button
-                        onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                        className="p-3 hover:bg-gray-50 transition-colors"
-                        disabled={quantity >= product.stock}
-                      >
-                        <Plus className="w-4 h-4 text-gray-500" />
-                      </button>
-                    </div>
-                    <span className="text-sm text-gray-400">
-                      Subtotal: {formatPrice((product.precio_oferta ?? product.precio) * quantity)}
-                    </span>
                   </div>
-                </div>
+
+                  {/* Selector de cantidad */}
+                  <div className="mb-6">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Cantidad:</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="p-3 hover:bg-gray-50 transition-colors"
+                          disabled={quantity <= 1}
+                        >
+                          <Minus className="w-4 h-4 text-gray-500" />
+                        </button>
+                        <span className="w-12 text-center font-semibold text-gray-800">
+                          {quantity}
+                        </span>
+                        <button
+                          onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                          className="p-3 hover:bg-gray-50 transition-colors"
+                          disabled={quantity >= product.stock}
+                        >
+                          <Plus className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                      <span className="text-sm text-gray-400">
+                        Subtotal: {formatPrice((product.precio_oferta ?? product.precio) * quantity)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botones disponible */}
+                  <div className="flex gap-3 mb-6">
+                    <motion.button
+                      onClick={handleAddToCart}
+                      whileTap={{ scale: 0.97 }}
+                      className={cn(
+                        'flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all duration-200',
+                        addedToCart
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:shadow-lg hover:shadow-rose-200'
+                      )}
+                    >
+                      {addedToCart ? (
+                        <>
+                          <CheckCircle className="w-5 h-5" />
+                          Agregado al carrito
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-5 h-5" />
+                          Agregar al carrito
+                        </>
+                      )}
+                    </motion.button>
+
+                    <button
+                      onClick={() => toggleFavorite(product.id)}
+                      className={cn(
+                        'w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-200',
+                        favorite
+                          ? 'bg-rose-500 border-rose-500 text-white'
+                          : 'border-gray-200 text-gray-500 hover:border-rose-300 hover:text-rose-400'
+                      )}
+                    >
+                      <Heart className={cn('w-5 h-5', favorite && 'fill-white')} />
+                    </button>
+
+                    <button
+                      onClick={handleShare}
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-gray-200 text-gray-500 hover:border-gray-300 transition-colors"
+                    >
+                      <Share2 className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Info adicional */}
+                  <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <span>📦</span>
+                      <span>Envío coordinado por WhatsApp</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>✅</span>
+                      <span>Producto 100% original y garantizado</span>
+                    </div>
+                  </div>
+                </>
               )}
-
-              {/* Botones de acción */}
-              <div className="flex gap-3 mb-6">
-                {(product.estado === 'agotado' || product.agotado) ? (
-                  /* Botón Solicitar pedido */
-                  <motion.button
-                    onClick={() => {
-                      addItem(product, 1);
-                      toast.success('Producto agregado, completa tu solicitud', {
-                        icon: '📦',
-                        style: { borderRadius: '12px' },
-                      });
-                      setTimeout(() => openCart(), 400);
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200 transition-all duration-200"
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    Solicitar pedido
-                  </motion.button>
-                ) : (
-                  /* Botón Agregar al carrito */
-                  <motion.button
-                    onClick={handleAddToCart}
-                    whileTap={{ scale: 0.97 }}
-                    className={cn(
-                      'flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all duration-200',
-                      addedToCart
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:shadow-lg hover:shadow-rose-200'
-                    )}
-                  >
-                    {addedToCart ? (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        Agregado al carrito
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingBag className="w-5 h-5" />
-                        Agregar al carrito
-                      </>
-                    )}
-                  </motion.button>
-                )}
-
-                <button
-                  onClick={() => toggleFavorite(product.id)}
-                  className={cn(
-                    'w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-200',
-                    favorite
-                      ? 'bg-rose-500 border-rose-500 text-white'
-                      : 'border-gray-200 text-gray-500 hover:border-rose-300 hover:text-rose-400'
-                  )}
-                >
-                  <Heart className={cn('w-5 h-5', favorite && 'fill-white')} />
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center border-2 border-gray-200 text-gray-500 hover:border-gray-300 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Información adicional */}
-              <div className="bg-gray-50 rounded-2xl p-4 space-y-2.5 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <span>📦</span>
-                  <span>Envío coordinado por WhatsApp</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>✅</span>
-                  <span>Producto 100% original y garantizado</span>
-                </div>
-
-              </div>
             </motion.div>
           </div>
         </div>
