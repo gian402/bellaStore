@@ -189,7 +189,7 @@ export default function CartDrawer() {
 
                 {/* Botón de compra */}
                 <Link
-                  href="/checkout"
+                  href="/pago-proximamente"
                   onClick={closeCart}
                   className="block w-full py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold text-center rounded-2xl hover:shadow-lg hover:shadow-rose-200 transition-all duration-300 hover:-translate-y-0.5"
                 >
