@@ -71,10 +71,7 @@ export async function PUT(
     if (body.precio !== undefined) updateData.precio = Math.abs(Number(body.precio));
     if (body.precio_oferta !== undefined) updateData.precio_oferta = body.precio_oferta ? Math.abs(Number(body.precio_oferta)) : null;
     if (body.categoria_id !== undefined) updateData.categoria_id = String(body.categoria_id);
-    if (body.stock !== undefined) {
-      updateData.stock = Math.max(0, Number(body.stock));
-      updateData.estado = updateData.stock > 0 ? 'disponible' : 'agotado';
-    }
+    if (body.stock !== undefined) updateData.stock = Math.max(0, Number(body.stock));
     if (body.destacado !== undefined) updateData.destacado = Boolean(body.destacado);
     if (body.es_nuevo !== undefined) updateData.es_nuevo = Boolean(body.es_nuevo);
     if (body.en_oferta !== undefined) updateData.en_oferta = Boolean(body.en_oferta);
@@ -82,6 +79,16 @@ export async function PUT(
     if (body.imagenes !== undefined) updateData.imagenes = Array.isArray(body.imagenes) ? body.imagenes : [];
     if (body.imagen_principal !== undefined) updateData.imagen_principal = body.imagen_principal;
     if (body.color !== undefined) updateData.color = body.color ? String(body.color) : null;
+    if (body.agotado !== undefined) updateData.agotado = Boolean(body.agotado);
+    if (body.costo_pedido !== undefined) updateData.costo_pedido = body.costo_pedido ? Math.abs(Number(body.costo_pedido)) : null;
+    if (body.tiempo_llegada !== undefined) updateData.tiempo_llegada = body.tiempo_llegada ? String(body.tiempo_llegada).trim() : null;
+
+    // El estado se basa en el toggle agotado; si no viene, usa el stock
+    const isAgotado = body.agotado !== undefined ? Boolean(body.agotado) : undefined;
+    const stockValue = body.stock !== undefined ? Math.max(0, Number(body.stock)) : undefined;
+    if (isAgotado !== undefined || stockValue !== undefined) {
+      updateData.estado = isAgotado ? 'agotado' : ((stockValue ?? 1) > 0 ? 'disponible' : 'agotado');
+    }
 
     const { data, error } = await supabase
       .from('productos')

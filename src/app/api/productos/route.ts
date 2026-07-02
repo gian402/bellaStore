@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       precio_oferta: body.precio_oferta ? Math.abs(Number(body.precio_oferta)) : null,
       categoria_id: String(body.categoria_id),
       stock: Math.max(0, Number(body.stock ?? 0)),
-      estado: body.stock > 0 ? 'disponible' : 'agotado',
+      estado: body.agotado ? 'agotado' : (body.stock > 0 ? 'disponible' : 'agotado'),
       destacado: Boolean(body.destacado),
       es_nuevo: Boolean(body.es_nuevo),
       en_oferta: Boolean(body.en_oferta),
@@ -151,6 +151,9 @@ export async function POST(request: NextRequest) {
       imagen_principal: body.imagen_principal ?? '',
       slug: body.slug ?? body.nombre.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
       color: body.color ? String(body.color) : null,
+      agotado: Boolean(body.agotado),
+      costo_pedido: body.agotado && body.costo_pedido ? Math.abs(Number(body.costo_pedido)) : null,
+      tiempo_llegada: body.agotado && body.tiempo_llegada ? String(body.tiempo_llegada).trim() : null,
       vistas: 0,
       ventas: 0,
     };
