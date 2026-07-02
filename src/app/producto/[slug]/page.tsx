@@ -346,10 +346,7 @@ export default function ProductDetailPage() {
                   <span>✅</span>
                   <span>Producto 100% original y garantizado</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>🔄</span>
-                  <span>Devoluciones en 7 días si hay defectos</span>
-                </div>
+
               </div>
             </motion.div>
           </div>
