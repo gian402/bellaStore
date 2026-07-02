@@ -191,25 +191,55 @@ export default function ProductCard({ product, className }: ProductCardProps) {
               )}
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={product.estado === 'agotado' || product.agotado}
-              className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0',
-                (product.estado === 'agotado' || product.agotado)
-                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  : 'bg-rose-500 text-white hover:bg-rose-600 shadow-sm hover:shadow-md active:scale-95'
-              )}
-              aria-label="Agregar al carrito"
-            >
-              <ShoppingBag className="w-4 h-4" />
-            </button>
+            {(product.estado === 'agotado' || product.agotado) ? (
+              /* Botón verde "Solicitar" para productos agotados */
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  addItem(product);
+                  toast.success('Agregado — completa tu solicitud', {
+                    icon: '📦',
+                    style: { borderRadius: '12px', fontSize: '13px' },
+                  });
+                }}
+                className="flex items-center gap-1 px-3 h-8 rounded-xl bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 shadow-sm hover:shadow-md active:scale-95 transition-all duration-200 flex-shrink-0"
+                aria-label="Solicitar pedido"
+              >
+                Solicitar
+              </button>
+            ) : (
+              /* Botón carrito normal */
+              <button
+                onClick={handleAddToCart}
+                className="w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0 bg-rose-500 text-white hover:bg-rose-600 shadow-sm hover:shadow-md active:scale-95"
+                aria-label="Agregar al carrito"
+              >
+                <ShoppingBag className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {product.estado === 'disponible' && !product.agotado && product.stock <= 5 && product.stock > 0 && (
             <p className="text-[10px] text-amber-500 font-medium mt-1.5">
               ¡Solo quedan {product.stock}!
             </p>
+          )}
+
+          {/* Info de pedido anticipado en la tarjeta */}
+          {(product.estado === 'agotado' || product.agotado) && (product.costo_pedido || product.tiempo_llegada) && (
+            <div className="mt-1.5 space-y-0.5">
+              {product.costo_pedido && (
+                <p className="text-[10px] text-gray-500">
+                  Costo pedido: <span className="font-semibold text-gray-700">{formatPrice(product.costo_pedido)}</span>
+                </p>
+              )}
+              {product.tiempo_llegada && (
+                <p className="text-[10px] text-gray-500">
+                  Llega en: <span className="font-semibold text-gray-700">{product.tiempo_llegada}</span>
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>

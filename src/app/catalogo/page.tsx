@@ -75,19 +75,19 @@ function CatalogContent() {
     setIsLoading(true);
     try {
       const supabase = createClient();
+      // Traer todos (disponibles Y agotados) — los agotados van al final
       let q = supabase
         .from('productos')
-        .select('*, categoria:categorias(*)')
-        .eq('estado', 'disponible');
+        .select('*, categoria:categorias(*)');
 
-      if (f.busqueda)                  q = q.ilike('nombre', `%${f.busqueda}%`);
-      if (f.categoria_id)              q = q.eq('categoria_id', f.categoria_id);
-      if (f.precio_min !== undefined)  q = q.gte('precio', f.precio_min);
-      if (f.precio_max !== undefined)  q = q.lte('precio', f.precio_max);
-      if (f.etiqueta === 'nuevo')      q = q.eq('es_nuevo', true);
-      if (f.etiqueta === 'oferta')     q = q.eq('en_oferta', true);
-      if (f.etiqueta === 'mas_vendido')q = q.eq('mas_vendido', true);
-      if (f.etiqueta === 'destacado')  q = q.eq('destacado', true);
+      if (f.busqueda)                   q = q.ilike('nombre', `%${f.busqueda}%`);
+      if (f.categoria_id)               q = q.eq('categoria_id', f.categoria_id);
+      if (f.precio_min !== undefined)   q = q.gte('precio', f.precio_min);
+      if (f.precio_max !== undefined)   q = q.lte('precio', f.precio_max);
+      if (f.etiqueta === 'nuevo')       q = q.eq('es_nuevo', true);
+      if (f.etiqueta === 'oferta')      q = q.eq('en_oferta', true);
+      if (f.etiqueta === 'mas_vendido') q = q.eq('mas_vendido', true);
+      if (f.etiqueta === 'destacado')   q = q.eq('destacado', true);
 
       switch (f.orden) {
         case 'precio_asc':  q = q.order('precio',     { ascending: true  }); break;
@@ -99,13 +99,18 @@ function CatalogContent() {
 
       const { data, error } = await q;
       if (error) throw error;
-      setProducts((data as Product[]) ?? []);
+
+      // Agotados siempre al final
+      const all = (data as Product[]) ?? [];
+      const disponibles = all.filter(p => p.estado !== 'agotado' && !p.agotado);
+      const agotados    = all.filter(p => p.estado === 'agotado' || p.agotado);
+      setProducts([...disponibles, ...agotados]);
     } catch {
       let sample = [...SAMPLE_PRODUCTS];
-      if (f.busqueda)                  sample = sample.filter(p => p.nombre.toLowerCase().includes(f.busqueda!.toLowerCase()));
-      if (f.etiqueta === 'nuevo')      sample = sample.filter(p => p.es_nuevo);
-      if (f.etiqueta === 'oferta')     sample = sample.filter(p => p.en_oferta);
-      if (f.etiqueta === 'mas_vendido')sample = sample.filter(p => p.mas_vendido);
+      if (f.busqueda)                   sample = sample.filter(p => p.nombre.toLowerCase().includes(f.busqueda!.toLowerCase()));
+      if (f.etiqueta === 'nuevo')       sample = sample.filter(p => p.es_nuevo);
+      if (f.etiqueta === 'oferta')      sample = sample.filter(p => p.en_oferta);
+      if (f.etiqueta === 'mas_vendido') sample = sample.filter(p => p.mas_vendido);
       setProducts(sample);
     } finally {
       setIsLoading(false);
