@@ -241,7 +241,7 @@ export default function ProductDetailPage() {
 
               {/* Stock */}
               <div className="flex items-center gap-2 mb-6">
-                {product.estado === 'disponible' ? (
+                {(product.estado === 'disponible' && !product.agotado) ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
                     <span className="text-sm text-emerald-600 font-medium">Disponible</span>
@@ -251,14 +251,38 @@ export default function ProductDetailPage() {
                   </>
                 ) : (
                   <>
-                    <span className="w-2 h-2 rounded-full bg-gray-300" />
-                    <span className="text-sm text-gray-400">Agotado</span>
+                    <span className="w-2 h-2 rounded-full bg-red-400" />
+                    <span className="text-sm text-red-500 font-semibold">Agotado</span>
                   </>
                 )}
               </div>
 
+              {/* Info de pedido anticipado (solo cuando está agotado) */}
+              {(product.estado === 'agotado' || product.agotado) && (
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 mb-6 space-y-2">
+                  <p className="text-sm font-bold text-red-700 flex items-center gap-1.5">
+                    <span>📦</span> Pedido anticipado disponible
+                  </p>
+                  {product.costo_pedido != null && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Costo de pedido:</span>
+                      <span className="font-bold text-gray-800">{formatPrice(product.costo_pedido)}</span>
+                    </div>
+                  )}
+                  {product.tiempo_llegada && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-500">Tiempo de llegada:</span>
+                      <span className="font-semibold text-gray-700">{product.tiempo_llegada}</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 pt-1">
+                    Solicita tu pedido y nos pondremos en contacto contigo.
+                  </p>
+                </div>
+              )}
+
               {/* Selector de cantidad */}
-              {product.estado === 'disponible' && (
+              {(product.estado === 'disponible' && !product.agotado) && (
                 <div className="mb-6">
                   <p className="text-sm font-medium text-gray-700 mb-2">Cantidad:</p>
                   <div className="flex items-center gap-3">
@@ -290,31 +314,48 @@ export default function ProductDetailPage() {
 
               {/* Botones de acción */}
               <div className="flex gap-3 mb-6">
-                <motion.button
-                  onClick={handleAddToCart}
-                  disabled={product.estado === 'agotado'}
-                  whileTap={{ scale: 0.97 }}
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all duration-200',
-                    product.estado === 'agotado'
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : addedToCart
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:shadow-lg hover:shadow-rose-200'
-                  )}
-                >
-                  {addedToCart ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Agregado al carrito
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-5 h-5" />
-                      {product.estado === 'agotado' ? 'Agotado' : 'Agregar al carrito'}
-                    </>
-                  )}
-                </motion.button>
+                {(product.estado === 'agotado' || product.agotado) ? (
+                  /* Botón Solicitar pedido */
+                  <motion.button
+                    onClick={() => {
+                      addItem(product, 1);
+                      toast.success('Producto agregado, completa tu solicitud', {
+                        icon: '📦',
+                        style: { borderRadius: '12px' },
+                      });
+                      setTimeout(() => openCart(), 400);
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm bg-gradient-to-r from-red-500 to-rose-600 text-white hover:shadow-lg hover:shadow-red-200 transition-all duration-200"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    Solicitar pedido
+                  </motion.button>
+                ) : (
+                  /* Botón Agregar al carrito */
+                  <motion.button
+                    onClick={handleAddToCart}
+                    whileTap={{ scale: 0.97 }}
+                    className={cn(
+                      'flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-semibold text-sm transition-all duration-200',
+                      addedToCart
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:shadow-lg hover:shadow-rose-200'
+                    )}
+                  >
+                    {addedToCart ? (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Agregado al carrito
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-5 h-5" />
+                        Agregar al carrito
+                      </>
+                    )}
+                  </motion.button>
+                )}
 
                 <button
                   onClick={() => toggleFavorite(product.id)}

@@ -44,7 +44,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (product.estado === 'agotado') return;
+    if (product.estado === 'agotado' || product.agotado) return;
     addItem(product);
     toast.success(`${product.nombre} agregado al carrito`, {
       icon: '🛍️',
@@ -116,10 +116,11 @@ export default function ProductCard({ product, className }: ProductCardProps) {
         </motion.div>
 
         {/* Agotado */}
-        {product.estado === 'agotado' && (
-          <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-            <span className="bg-gray-800 text-white text-xs font-medium px-3 py-1.5 rounded-full">
-              Agotado
+        {(product.estado === 'agotado' || product.agotado) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" />
+            <span className="relative z-10 bg-red-600 text-white text-xs font-bold px-4 py-1.5 rounded-full tracking-widest uppercase shadow-lg">
+              AGOTADO
             </span>
           </div>
         )}
@@ -192,10 +193,10 @@ export default function ProductCard({ product, className }: ProductCardProps) {
 
             <button
               onClick={handleAddToCart}
-              disabled={product.estado === 'agotado'}
+              disabled={product.estado === 'agotado' || product.agotado}
               className={cn(
                 'w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0',
-                product.estado === 'agotado'
+                (product.estado === 'agotado' || product.agotado)
                   ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
                   : 'bg-rose-500 text-white hover:bg-rose-600 shadow-sm hover:shadow-md active:scale-95'
               )}
@@ -205,7 +206,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
             </button>
           </div>
 
-          {product.estado === 'disponible' && product.stock <= 5 && product.stock > 0 && (
+          {product.estado === 'disponible' && !product.agotado && product.stock <= 5 && product.stock > 0 && (
             <p className="text-[10px] text-amber-500 font-medium mt-1.5">
               ¡Solo quedan {product.stock}!
             </p>

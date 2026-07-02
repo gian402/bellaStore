@@ -66,10 +66,35 @@ export default function CheckoutPage() {
     setStep('confirmacion');
   };
 
-  const handleEmailOrder = () => {
-    const subject = encodeURIComponent(`Nuevo pedido de ${formData.nombre}`);
+  const handleEmailOrder = async () => {
+    // 1. Guardar pedido en la base de datos
+    try {
+      await fetch('/api/pedidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cliente_nombre: formData.nombre,
+          cliente_telefono: formData.telefono,
+          cliente_email: formData.email || null,
+          cliente_direccion: formData.direccion || null,
+          notas: formData.notas || null,
+          items: items.map(item => ({
+            producto_id: item.producto.id,
+            nombre_producto: item.producto.nombre,
+            precio: item.precio_unitario,
+            cantidad: item.cantidad,
+            subtotal: item.precio_unitario * item.cantidad,
+            imagen: item.producto.imagen_principal,
+          })),
+        }),
+      });
+    } catch {
+      // Continuar aunque falle el guardado
+    }
 
-    const body = encodeURIComponent(
+    // 2. Abrir WhatsApp con el resumen del pedido
+    const whatsappNumber = '51999999999'; // Cambia por tu número de WhatsApp
+    const message = encodeURIComponent(
       `Hola, quiero hacer un pedido:\n\n` +
       `📦 PRODUCTOS:\n` +
       items.map(item => `• ${item.producto.nombre} x${item.cantidad} — ${formatPrice(item.precio_unitario * item.cantidad)}`).join('\n') +
@@ -77,12 +102,12 @@ export default function CheckoutPage() {
       `📋 DATOS DE CONTACTO:\n` +
       `Nombre: ${formData.nombre}\n` +
       `Teléfono: ${formData.telefono}\n` +
-      (formData.email    ? `Email: ${formData.email}\n`       : '') +
-      (formData.direccion? `Dirección: ${formData.direccion}\n`: '') +
-      (formData.notas    ? `Notas: ${formData.notas}\n`        : '')
+      (formData.email     ? `Email: ${formData.email}\n`        : '') +
+      (formData.direccion ? `Dirección: ${formData.direccion}\n` : '') +
+      (formData.notas     ? `Notas: ${formData.notas}\n`         : '')
     );
 
-    window.open(`mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
     clearCart();
     router.push('/');
   };
@@ -184,7 +209,7 @@ export default function CheckoutPage() {
                         <input
                           {...register('telefono')}
                           type="tel"
-                          placeholder="+504 0000-0000"
+                          placeholder="+51 000 000 000"
                           className={cn(
                             'w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-all',
                             errors.telefono
