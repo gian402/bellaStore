@@ -158,60 +158,9 @@ export default function ColorPicker({ hex, nombre, onChange, onClear }: ColorPic
   return (
     <div className="space-y-3">
 
-      {/* ── Fila principal ── */}
-      <div className="flex items-center gap-3">
-
-        {/* Círculo interactivo */}
-        <label className="relative cursor-pointer group flex-shrink-0">
-          {/* Input nativo oculto */}
-          <input
-            type="color"
-            value={hex || '#C4856A'}
-            onChange={handleNativeInput}
-            className="sr-only"
-          />
-          {/* Círculo visible */}
-          <div
-            className="w-12 h-12 rounded-full border-4 border-white shadow-md ring-2 ring-gray-200 group-hover:ring-rose-400 transition-all"
-            style={{ backgroundColor: hasColor ? hex : '#e5e7eb' }}
-          />
-          {/* Ícono cuando no hay color */}
-          {!hasColor && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <Palette className="w-5 h-5 text-gray-400" />
-            </div>
-          )}
-        </label>
-
-        {/* Texto resultado / instrucción */}
-        <div className="flex-1 min-w-0">
-          {hasColor ? (
-            <div className="flex items-center gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-800 truncate">{nombre}</p>
-                <p className="text-xs text-gray-400 font-mono">{hex.toUpperCase()}</p>
-              </div>
-              <button
-                type="button"
-                onClick={onClear}
-                title="Quitar color"
-                className="ml-auto flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 flex items-center justify-center text-gray-400 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-gray-500">Haz clic en el círculo para elegir el color</p>
-              <p className="text-xs text-gray-400 mt-0.5">O selecciona un tono rápido abajo</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Paleta rápida ── */}
+      {/* ── Paleta rápida — PRIMERO para que el picker nativo abra hacia abajo ── */}
       <div>
-        <p className="text-xs text-gray-400 mb-2">Tonos frecuentes en maquillaje:</p>
+        <p className="text-xs text-gray-400 mb-2">Selecciona un tono:</p>
         <div className="flex flex-wrap gap-2">
           {QUICK_COLORS.map(({ hex: qhex, nombre: qnombre }) => {
             const isSelected = hasColor && hex === qhex;
@@ -221,7 +170,7 @@ export default function ColorPicker({ hex, nombre, onChange, onClear }: ColorPic
                 type="button"
                 title={qnombre}
                 onClick={() => handleQuickColor(qhex, qnombre)}
-                className="w-7 h-7 rounded-full transition-transform hover:scale-110 active:scale-95"
+                className="w-8 h-8 rounded-full transition-transform hover:scale-110 active:scale-95"
                 style={{
                   backgroundColor: qhex,
                   outline: isSelected ? '3px solid #f43f5e' : '2px solid white',
@@ -232,6 +181,54 @@ export default function ColorPicker({ hex, nombre, onChange, onClear }: ColorPic
             );
           })}
         </div>
+      </div>
+
+      {/* ── Fila resultado + picker personalizado ── */}
+      <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+
+        {/* Círculo con el color actual */}
+        <div
+          className="w-10 h-10 rounded-full border-4 border-white shadow-md ring-2 ring-gray-200 flex-shrink-0"
+          style={{ backgroundColor: hasColor ? hex : '#e5e7eb' }}
+        />
+
+        {/* Nombre y hex */}
+        <div className="flex-1 min-w-0">
+          {hasColor ? (
+            <>
+              <p className="text-sm font-semibold text-gray-800">{nombre}</p>
+              <p className="text-xs text-gray-400 font-mono">{hex.toUpperCase()}</p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-400">Sin color seleccionado</p>
+          )}
+        </div>
+
+        {/* Botón picker personalizado */}
+        <label className="relative cursor-pointer flex-shrink-0" title="Elegir color personalizado">
+          <input
+            type="color"
+            value={hex || '#C4856A'}
+            onChange={handleNativeInput}
+            className="sr-only"
+          />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 hover:border-rose-300 hover:text-rose-500 transition-colors shadow-sm">
+            <Palette className="w-3.5 h-3.5" />
+            Personalizar
+          </div>
+        </label>
+
+        {/* Botón limpiar */}
+        {hasColor && (
+          <button
+            type="button"
+            onClick={onClear}
+            title="Quitar color"
+            className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 hover:bg-red-100 hover:text-red-500 flex items-center justify-center text-gray-400 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
     </div>
   );
